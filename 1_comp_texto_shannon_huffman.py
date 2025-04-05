@@ -57,6 +57,7 @@ class CompressaoTextoApp:
             return
 
         freq = Counter(text)
+        total_chars = sum(freq.values())
         heap = [Node(char, freq) for char, freq in freq.items()]
         heapq.heapify(heap)
 
@@ -74,11 +75,12 @@ class CompressaoTextoApp:
 
         compressed = ''.join(codes[char] for char in text)
 
-        freq_output = "\n".join(f"'{char}': {freq[char]}" for char in codes)
+        freq_output = "\n".join(f"'{char}': {freq[char]} ({freq[char] / total_chars:.2%})" for char in codes)
 
         self.output_text.delete("1.0", tk.END)
         self.output_text.insert(tk.END, f"Codificação Huffman:\n{codes}\n\nTexto Comprimido:\n{compressed}\n\nFrequências:\n{freq_output}")
         self.canvas.delete("all")
+        self.draw_huffman_tree(self.canvas, root, 400, 20, 180, total_chars)
 
     def generate_huffman_codes(self, node, current_code, codes):
         if node is None:
@@ -96,6 +98,7 @@ class CompressaoTextoApp:
             return
 
         freq = Counter(text)
+        total_chars = sum(freq.values())
         symbols = sorted(freq.items(), key=lambda item: item[1], reverse=True)
         tree = self.build_shannon_fano_tree(symbols)
         codes = {}
@@ -103,12 +106,12 @@ class CompressaoTextoApp:
 
         compressed = ''.join(codes[char] for char in text)
 
-        freq_output = "\n".join(f"'{char}': {freq[char]}" for char in codes)
+        freq_output = "\n".join(f"'{char}': {freq[char]} ({freq[char] / total_chars:.2%})" for char in codes)
 
         self.output_text.delete("1.0", tk.END)
         self.output_text.insert(tk.END, f"Codificação Shannon-Fano:\n{codes}\n\nTexto Comprimido:\n{compressed}\n\nFrequências:\n{freq_output}")
         self.canvas.delete("all")
-        self.draw_tree(self.canvas, tree, 400, 20, 180)
+        self.draw_shannon_tree(self.canvas, tree, 400, 20, 180, total_chars)
 
     def build_shannon_fano_tree(self, symbols):
         if len(symbols) == 1:
@@ -139,19 +142,35 @@ class CompressaoTextoApp:
         if node.right:
             self.generate_shannon_fano_codes(node.right, code + "1", codes)
 
-    def draw_tree(self, canvas, node, x, y, spacing):
+    def draw_shannon_tree(self, canvas, node, x, y, spacing, total):
         if node is None:
             return
-        label = f"{','.join(node.symbols)} ({node.freq})"
+        symbols = ','.join(node.symbols)
+        perc = node.freq / total
+        label = f"{symbols} ({node.freq}, {perc:.2%})"
         canvas.create_text(x, y, text=label, font=("Arial", 10))
 
         if node.left:
             canvas.create_line(x, y + 10, x - spacing, y + 60)
-            self.draw_tree(canvas, node.left, x - spacing, y + 60, spacing // 2)
+            self.draw_shannon_tree(canvas, node.left, x - spacing, y + 60, spacing // 2, total)
 
         if node.right:
             canvas.create_line(x, y + 10, x + spacing, y + 60)
-            self.draw_tree(canvas, node.right, x + spacing, y + 60, spacing // 2)
+            self.draw_shannon_tree(canvas, node.right, x + spacing, y + 60, spacing // 2, total)
+
+    def draw_huffman_tree(self, canvas, node, x, y, spacing, total):
+        if node is None:
+            return
+        label = f"{node.char if node.char else ''} ({node.freq}, {node.freq / total:.2%})"
+        canvas.create_text(x, y, text=label, font=("Arial", 10))
+
+        if node.left:
+            canvas.create_line(x, y + 10, x - spacing, y + 60)
+            self.draw_huffman_tree(canvas, node.left, x - spacing, y + 60, spacing // 2, total)
+
+        if node.right:
+            canvas.create_line(x, y + 10, x + spacing, y + 60)
+            self.draw_huffman_tree(canvas, node.right, x + spacing, y + 60, spacing // 2, total)
 
 
 if __name__ == "__main__":
