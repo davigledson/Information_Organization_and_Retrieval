@@ -110,8 +110,7 @@ def processar_frequencias(frequencias, imagem_array, nome_arquivo, tamanho_arqui
     tamanho_comprimido = os.path.getsize("imagem_comprimida.bin")
     tamanho_formatado = formatar_tamanho(tamanho_comprimido)
 
-    messagebox.showinfo("Sucesso", f"Imagem comprimida salva como 'imagem_comprimida.bin'\n"
-                                   f"Tamanho comprimido: {tamanho_formatado}")
+
 
 # Carrega e processa a imagem
 def carregar_imagem():
